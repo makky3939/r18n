@@ -27,28 +27,20 @@ module R18n
   module YamlMethods
     # Detect class for private type depend on YAML parser.
     def detect_yaml_private_type
-      @private_type_class = if defined?(JRUBY_VERSION)
-        ::YAML::Yecht::PrivateType
-      elsif '1.8.' == RUBY_VERSION[0..3]
-        ::YAML::PrivateType
-      elsif 'syck' == ::YAML::ENGINE.yamler
-        ::Syck::PrivateType
-      end
+      @private_type_class = ::Syck::PrivateType if defined?(Syck)
     end
 
     # Register global types in Psych
     def initialize_types
-      if '1.8.' != RUBY_VERSION[0..3] and 'psych' == ::YAML::ENGINE.yamler
-        Filters.by_type.keys.each do |type|
-          next unless type.is_a? String
-          # Yeah, I add R18n’s types to global, send me patch if you really
-          # use YAML types too ;).
-          Psych.add_domain_type('yaml.org,2002', type) do |full_type, value|
-            Typed.new(type, value)
-          end
+      return unless defined?(Psych)
+      Filters.by_type.each_key do |type|
+        next unless type.is_a? String
+        # Yeah, I add R18n’s types to global, send me patch if you really
+        # use YAML types too ;).
+        Psych.add_domain_type('yaml.org,2002', type) do |_full_type, value|
+          Typed.new(type, value)
         end
       end
     end
-
   end
 end
