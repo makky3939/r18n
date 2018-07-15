@@ -27,7 +27,7 @@ module R18n
   module YamlMethods
     # Detect class for private type depend on YAML parser.
     def detect_yaml_private_type
-      if defined?(::YAML::ENGINE)
+      if defined?(::YAML::ENGINE) && 'syck' == ::YAML::ENGINE.yamler
         @private_type_class = ::Syck::PrivateType
       end
     end
